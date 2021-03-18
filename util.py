@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 import functools
 import json
@@ -10,6 +10,7 @@ from base64 import b64encode
 
 import requests
 from Crypto.PublicKey import RSA
+# from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
 
 from log import logger

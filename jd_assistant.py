@@ -45,7 +45,7 @@ class Assistant(object):
         self.fp = global_config.get('config', 'fp')
         self.track_id = global_config.get('config', 'track_id')
         self.risk_control = global_config.get('config', 'risk_control')
-        if not self.eid or not self.fp or not self.track_id or not self.risk_control:
+        if not self.eid or not self.fp :
             raise AsstException('请在 config.ini 中配置 eid, fp, track_id, risk_control 参数，具体请参考 wiki-常见问题')
 
         self.timeout = float(global_config.get('config', 'timeout') or DEFAULT_TIMEOUT)
@@ -652,8 +652,11 @@ class Assistant(object):
 
             if result:
                 logger.info('%s x %s 已成功加入购物车', sku_id, count)
+                return True
             else:
                 logger.error('%s 添加到购物车失败', sku_id)
+                logger.info(resp.url)
+                return False
 
     @check_login
     def clear_cart(self):
@@ -903,18 +906,18 @@ class Assistant(object):
 
         data = {
             'overseaPurchaseCookies': '',
-            'vendorRemarks': '[]',
+	        'vendorRemarks': [],
             'submitOrderParam.sopNotPutInvoice': 'false',
             'submitOrderParam.trackID': 'TestTrackId',
             'submitOrderParam.ignorePriceChange': '0',
-            'submitOrderParam.btSupport': '0',
-            'riskControl': self.risk_control,
-            'submitOrderParam.isBestCoupon': 1,
-            'submitOrderParam.jxj': 1,
-            'submitOrderParam.trackId': self.track_id,  # Todo: need to get trackId
+	        'submitOrderParam.btSupport': '1',
+            # 'riskControl': self.risk_control,
+            # 'submitOrderParam.trackId': self.track_id,  # Todo: need to get trackId
             'submitOrderParam.eid': self.eid,
             'submitOrderParam.fp': self.fp,
-            'submitOrderParam.needCheck': 1,
+            'presaleStockSign': 1,
+            'submitOrderParam.isBestCoupon': 1,
+            'submitOrderParam.jxj': 1
         }
 
         # add payment password when necessary
@@ -951,7 +954,7 @@ class Assistant(object):
             else:
                 message, result_code = resp_json.get('message'), resp_json.get('resultCode')
                 if result_code == 0:
-                    self._save_invoice()
+                    # self._save_invoice()
                     message = message + '(下单商品可能为第三方商品，将切换为普通发票进行尝试)'
                 elif result_code == 60077:
                     message = message + '(可能是购物车为空 或 未勾选购物车中商品)'
@@ -1356,15 +1359,20 @@ class Assistant(object):
 
         t = Timer(buy_time=buy_time)
         t.start()
-
-        self.add_item_to_cart(sku_ids={sku_id: num})
+        added = False
+        for count in range(1, retry + 1):
+            if  self.add_item_to_cart(sku_ids={sku_id: num}) :
+                added = True
+                break
+        if not added :
+            return
 
         for count in range(1, retry + 1):
             logger.info('第[%s/%s]次尝试提交订单', count, retry)
             if self.submit_order():
                 break
-            logger.info('休息%ss', interval)
-            time.sleep(interval)
+            logger.info('休息%ss',  interval)
+            time.sleep( interval)
         else:
             logger.info('执行结束，提交订单失败！')
 

@@ -1,0 +1,48 @@
+Request URL: https://marathon.jd.com/seckillnew/orderService/pc/submitOrder.action?skuId=100018071914
+Referrer Policy: strict-origin-when-cross-origin
+Provisional headers are shown
+Accept: application/json, text/plain, */*
+Content-Type: application/x-www-form-urlencoded
+Referer: https://marathon.jd.com/seckill/seckill.action?skuId=100018071914&num=1&rid=1616033955
+sec-ch-ua: "Google Chrome";v="87", " Not;A Brand";v="99", "Chromium";v="87"
+sec-ch-ua-mobile: ?0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36
+skuId: 100018071914
+skuId: 100018071914
+num: 1
+addressId: 589166155
+yuShou: false
+isModifyAddress: false
+name: 赵玲
+provinceId: 22
+cityId: 1930
+countyId: 50948
+townId: 52157
+addressDetail: 东昌路68号上东一号丽景苑
+mobile: 187****8140
+mobileKey: a761d84bfcc5c9c2c2c29ad35f718755
+email: 
+postCode: 
+invoiceTitle: 4
+invoiceCompanyName: 
+invoiceContent: 1
+invoiceTaxpayerNO: 
+invoiceEmail: 
+invoicePhone: 187****8140
+invoicePhoneKey: a761d84bfcc5c9c2c2c29ad35f718755
+invoice: true
+password: 
+codTimeType: 3
+paymentType: 4
+areaCode: 
+overseas: 0
+phone: 
+eid: 5TFN4KA3OZ5HMLRAEUA7VKDL3L44GIHLMNVN2PBIBFXGUJEMH3A5DJBEYDFXUXECDR22I7LERPTJL4L7EG23XDUGT4
+fp: 7a11ca5928fc87804bbb81a2a8ac1351
+token: 6ffc727d911ce01765de8d4a68750c99
+pru: 
+provinceName: 四川
+cityName: 成都市
+countyName: 成华区
+townName: 城区
+sk: K46C38p25H43j19w32c12
