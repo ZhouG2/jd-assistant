@@ -92,13 +92,24 @@ class Assistant(object):
         通过访问用户订单列表页进行判断：若未登录，将会重定向到登陆页面。
         :return: cookies是否有效 True/False
         """
-        url = 'https://order.jd.com/center/list.action'
+        # url = 'https://order.jd.com/center/list.action'
+        # url = 'https://order.jd.com/lazy/isPlusMember.action'
+        url = 'https://order.jd.com/lazy/getOrderListCountJson.action'
         payload = {
-            'rid': str(int(time.time() * 1000)),
+            '_': str(int(time.time() * 1000)),
+            'callback':'jQuery{}'.format(random.randint(100000, 999999)),
+        }
+        headers = {
+            'User-Agent': self.user_agent,
+            'Referer': 'https://order.jd.com/center/list.action',
         }
         try:
-            resp = self.sess.get(url=url, params=payload, allow_redirects=False)
-            if resp.status_code == requests.codes.OK:
+            resp = self.sess.get(url=url, params=payload, allow_redirects=False, headers = headers)
+            # json_resp = parse_json(resp.text)
+            logger.info("validate_cookies:%s", resp.text)
+
+            if resp.status_code == requests.codes.OK and resp.text.index("info") > 0:
+                logger.info("sucesss")
                 return True
         except Exception as e:
             logger.error(e)
@@ -315,6 +326,22 @@ class Assistant(object):
         else:
             logger.info(resp_json)
             return False
+    def login_by_cookieString(self, cookiesString):
+        manual_cookies = {}
+        # cookiesString = "shshshfpa=8b257df8-2b37-cc1b-3876-5893bc4b63e9-1610602086; shshshfpb=t49povbqrojZaUTLkiyvtww%3D%3D; __jdu=456735623; pinId=NyozGQScbNI; pin=zg_vip; unick=zg_vip; _tp=t2ytaFS9aCz0Mc%2FHdtnE3w%3D%3D; _pst=zg_vip; areaId=22; PCSYCityID=CN_510000_510100_510107; TrackID=17R3ECg6L4CDs3YcC5k-gtjLwaXcbx96UFFjwMZJRATWOc521pXu1Kfvv76lcbjxxAobI3m58r9QXSPgFn2lCivhnf8TQ8nqJRsU2RD5kKIg9MJSlWvUDqga8qOeflhY9; ceshi3.com=000; user-key=f6f2a91e-d1e7-40b2-9d98-a6c3b592c1ae; cn=1; ipLoc-djd=22-1930-50948-52157.589166155; ipLocation=%u56db%u5ddd; __jdv=76161171|direct|-|none|-|1615863684940; __jda=122270672.456735623.1610602084.1615514314.1615863685.8; __jdc=122270672; shshshfp=bf9d21c40bb8fec0e32ac05784dfa6d3; shshshsID=f89e35697b9a81cc2607b2305e5a0ed0_9_1615863752185; 3AB9D23F7A4B3C9B=5TFN4KA3OZ5HMLRAEUA7VKDL3L44GIHLMNVN2PBIBFXGUJEMH3A5DJBEYDFXUXECDR22I7LERPTJL4L7EG23XDUGT4; __jdb=122270672.14.456735623|8.1615863685; thor=524A4B2233BB30EA2F3A0A22953B428A44F0D7BC95CEEFBE61D96EB9DEA69F69D5CEF819BB13F91820CED6FEBD06A20E35AB9FA2F94640256B273F4C3B60AACF793671558E4520F4A39034140AD3F20280B84E2AEA4DB60307D31883BE15C1656746C3162869E2A33D60A2033CF6B8500A3907F745702FCB247CCE7D165E73AE"
+        for item in cookiesString.split(';'):
+            name, value = item.strip().split('=', 1)
+        # 用=号分割，分割1次
+        manual_cookies[name] = value
+        # 为字典cookies添加内容
+        cookiesJar = requests.utils.cookiejar_from_dict(manual_cookies, cookiejar=None, overwrite=True)
+        self.sess.cookies.update(cookiesJar)
+        if self._validate_cookies() :
+            self.nick_name = self.get_user_info()
+            self._save_cookies()
+        else :
+            self.login_by_QRcode()
+        
 
     def login_by_QRcode(self):
         """二维码登陆
@@ -1125,6 +1152,7 @@ class Assistant(object):
                 return seckill_url
             else:
                 logger.info("抢购链接获取失败，%s不是抢购商品或抢购页面暂未刷新，%s秒后重试", sku_id, retry_interval)
+                logger.info(resp_json)
                 time.sleep(retry_interval)
 
     @deprecated
@@ -1170,6 +1198,8 @@ class Assistant(object):
         :return: 初始化信息组成的dict
         """
         url = 'https://marathon.jd.com/seckillnew/orderService/pc/init.action'
+        # url = 'https://marathon.jd.com/seckillnew/orderService/pc/submitOrder.action'
+        # https://marathon.jd.com/seckillnew/orderService/pc/submitOrder.action?skuId=100018071914
         data = {
             'sku': sku_id,
             'num': num,
@@ -1180,6 +1210,7 @@ class Assistant(object):
             'Host': 'marathon.jd.com',
         }
         resp = self.sess.post(url=url, data=data, headers=headers)
+        logger.info("seckill_init_info resp:%s", resp.text)
         return parse_json(resp.text)
 
     @deprecated
@@ -1195,6 +1226,7 @@ class Assistant(object):
             self.seckill_init_info[sku_id] = self._get_seckill_init_info(sku_id)
 
         init_info = self.seckill_init_info.get(sku_id)
+        logger.info("init_info:%s", init_info)
         default_address = init_info['addressList'][0]  # 默认地址dict
         invoice_info = init_info.get('invoiceInfo', {})  # 默认发票信息dict, 有可能不返回
         token = init_info['token']
